@@ -52,6 +52,12 @@ function Content(props: IProps) {
       });
   }, []);
 
+  useEffect(() => {
+    if (props.tool !== 'select') {
+      setSelectedLabel(null);
+    }
+  }, [props.tool]);
+
   const getLabelElements = () => {
     const children = labels.map((item: Label, index: number) => {
       const style = {
@@ -91,7 +97,26 @@ function Content(props: IProps) {
     return <div className="labels" children={children}></div>;
   };
 
-  const handleMouseDown = (event: React.MouseEvent) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (
+      (event.key === 'Delete' || event.key === 'Backspace') &&
+      selectedLabel !== null
+    ) {
+      const newLabels: Label[] = JSON.parse(JSON.stringify(labels));
+      newLabels.splice(selectedLabel, 1);
+      setLabels(newLabels);
+      setSelectedLabel(null);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  });
+
+  const handleMouseDownCanvas = (event: React.MouseEvent) => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     setLabel({
       startX: event.pageX - canvas.getBoundingClientRect().left,
@@ -103,7 +128,7 @@ function Content(props: IProps) {
     setDrag(true);
   };
 
-  const handleMouseMove = (event: React.MouseEvent) => {
+  const handleMouseMoveCanvas = (event: React.MouseEvent) => {
     if (isDrag) {
       const canvas = canvasRef.current as HTMLCanvasElement;
       const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -117,7 +142,7 @@ function Content(props: IProps) {
     }
   };
 
-  const handleMouseUp = (event: React.MouseEvent) => {
+  const handleMouseUpCanvas = (event: React.MouseEvent) => {
     if (label.width < 0) {
       label.startX = label.startX + label.width;
       label.width *= -1;
@@ -129,8 +154,8 @@ function Content(props: IProps) {
 
     label.startX -= 1.5;
     label.startY -= 1.5;
-    label.width -= 3;
-    label.height -= 3;
+    label.width = Math.max(label.width - 3, 0);
+    label.height = Math.max(label.height - 3, 0);
 
     const newLabels: Label[] = JSON.parse(JSON.stringify(labels));
     newLabels.push(label);
@@ -157,9 +182,9 @@ function Content(props: IProps) {
           ref={canvasRef}
           width={imageSize.width}
           height={imageSize.height}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
+          onMouseDown={handleMouseDownCanvas}
+          onMouseMove={handleMouseMoveCanvas}
+          onMouseUp={handleMouseUpCanvas}
         ></canvas>
       ) : (
         <></>
