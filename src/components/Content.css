@@ -1,0 +1,108 @@
+.Content {
+  position: fixed;
+  top: 66px;
+  right: 0;
+  bottom: 0;
+  left: 58px;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.Content.select {
+  cursor: default;
+}
+
+.Content.create {
+  cursor: crosshair;
+}
+
+.Content .image, .Content .canvas {
+  position: absolute;
+}
+
+.Content .label {
+  position: absolute;
+  border: 3px solid black;
+}
+
+.Content .label.selected {
+  border-color: #5668D9;
+  background-color: rgba(34, 41, 85, 0.2);
+}
+
+.Content .label .anchors {
+  display: none;
+}
+
+.Content .label.selected .anchors {
+  display: block;
+}
+
+.Content .label .anchors .anchor-rotate-line {
+  position: absolute;
+  top: -35px;
+  left: calc(50% - 1.5px);
+  width: 3px;
+  height: 32px;
+  background-color: #5668D9;
+}
+
+.Content .label .anchors .anchor-rotate {
+  position: absolute;
+  top: -48px;
+  left: calc(50% - 8px);
+  width: 10px;
+  height: 10px;
+  border: 3px solid #5668D9;
+  border-radius: 8px;
+  background-color: white;
+}
+
+
+.Content .label .anchors .anchor-square {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 3px solid #5668D9;
+  background-color: white;
+}
+
+.Content .label .anchors .anchor-top {
+  top: -9.5px;
+  left: calc(50% - 8px);
+}
+
+.Content .label .anchors .anchor-top-right {
+  top: -9.5px;
+  right: -9.5px;
+}
+
+.Content .label .anchors .anchor-right {
+  top: calc(50% - 8px);
+  right: -9.5px;
+}
+
+.Content .label .anchors .anchor-bottom-right {
+  bottom: -9.5px;
+  right: -9.5px;
+}
+
+.Content .label .anchors .anchor-bottom {
+  bottom: -9.5px;
+  left: calc(50% - 8px);
+}
+
+.Content .label .anchors .anchor-bottom-left {
+  bottom: -9.5px;
+  left: -9.5px;
+}
+
+.Content .label .anchors .anchor-left {
+  top: calc(50% - 8px);
+  left: -9.5px;
+}
+
+.Content .label .anchors .anchor-top-left {
+  top: -9.5px;
+  left: -9.5px;
+}
