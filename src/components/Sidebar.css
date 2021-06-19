@@ -1,0 +1,23 @@
+.Sidebar {
+  position: fixed;
+  top: 4.0625rem;
+  left: 0rem;
+  width: 2.5rem;
+  height: 100%;
+  border: 1px solid #EBEDF2;
+  padding: 0rem 0.5rem;
+  background-color: #FCFCFC;
+}
+
+.Sidebar div[class*="tool"] {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-top: 0.5rem;
+  border-radius: 0.5rem;
+  background-color: none;
+  cursor: pointer;
+}
+
+.Sidebar div[class*="tool"].selected {
+  background-color: #D5D9E2;
+}

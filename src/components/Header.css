@@ -1,4 +1,8 @@
 .Header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     border: 1px solid #EBEDF2;
     padding: 1.3125rem 0rem 1rem 3.5rem;
     background-color: #FCFCFC;

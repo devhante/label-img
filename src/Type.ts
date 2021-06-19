@@ -1,0 +1,1 @@
+export type tool = 'select' | 'create';
