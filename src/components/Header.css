@@ -4,12 +4,12 @@
     left: 0;
     width: 100%;
     border: 1px solid #EBEDF2;
-    padding: 1.3125rem 0rem 1rem 3.5rem;
+    padding: 21px 0 16px 56px;
     background-color: #FCFCFC;
 }
 
 .Header .title {
     color: #141746;
-    font-size: 1.25rem;
+    font-size: 20px;
     font-family: "Noto Sans Display SemiBold";
 }
