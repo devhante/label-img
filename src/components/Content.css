@@ -28,6 +28,7 @@
 .Content .label.selected {
   border-color: #5668D9;
   background-color: rgba(34, 41, 85, 0.2);
+  z-index: 1000;
 }
 
 .Content .label .anchors {

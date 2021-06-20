@@ -13,6 +13,11 @@ interface Size {
   height: number;
 }
 
+interface Coord {
+  x: number;
+  y: number;
+}
+
 interface Label {
   startX: number;
   startY: number;
@@ -24,9 +29,12 @@ function Content(props: IProps) {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [imageSize, setImageSize] = useState<Size>({ width: 0, height: 0 });
 
-  const [selectedLabel, setSelectedLabel] = useState<number | null>(null);
+  const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
+  const [isMoving, setMoving] = useState<boolean>(false);
+  const [isMoved, setMoved] = useState<boolean>(false);
+  const [startPos, setStartPos] = useState<Coord>({ x: 0, y: 0 });
 
-  const [isDrag, setDrag] = useState<boolean>(false);
+  const [isDrawing, setDrawing] = useState<boolean>(false);
   const [labels, setLabels] = useState<Label[]>([]);
   const [label, setLabel] = useState<Label>({
     startX: 0,
@@ -54,9 +62,17 @@ function Content(props: IProps) {
 
   useEffect(() => {
     if (props.tool !== 'select') {
-      setSelectedLabel(null);
+      setSelectedLabels([]);
     }
   }, [props.tool]);
+
+  function getNewArray<T>(array: T[]): T[] {
+    return JSON.parse(JSON.stringify(array));
+  }
+
+  const handleClickImage = () => {
+    setSelectedLabels([]);
+  };
 
   const getLabelElements = () => {
     const children = labels.map((item: Label, index: number) => {
@@ -67,16 +83,16 @@ function Content(props: IProps) {
         height: item.height,
       };
 
-      const handleClick = (event: React.MouseEvent) => {
-        setSelectedLabel(index);
-      };
-
       return (
         <div
           id={`label-${index}`}
-          className={`label${index === selectedLabel ? ' selected' : ''}`}
+          className={`label${
+            selectedLabels.includes(index) ? ' selected' : ''
+          }`}
           style={style}
-          onClick={handleClick}
+          onMouseDown={handleMouseDownLabel}
+          onMouseMove={handleMouseMoveLabel}
+          onMouseUp={handleMouseUpLabel}
           key={index}
         >
           <div className="anchors">
@@ -97,15 +113,73 @@ function Content(props: IProps) {
     return <div className="labels" children={children}></div>;
   };
 
+  const handleMouseDownLabel = (event: React.MouseEvent) => {
+    if (selectedLabels.includes(Number(event.currentTarget.id.slice(6)))) {
+      setStartPos({ x: event.pageX, y: event.pageY });
+      setMoving(true);
+    }
+    setMoved(false);
+  };
+
+  const handleMouseMoveLabel = (event: React.MouseEvent) => {
+    if (isMoving && selectedLabels.length > 0) {
+      const newLabels: Label[] = getNewArray(labels);
+      let canMoveX = true;
+      let canMoveY = true;
+      selectedLabels.forEach((item) => {
+        let newX = newLabels[item].startX + event.pageX - startPos.x;
+        let newY = newLabels[item].startY + event.pageY - startPos.y;
+        if (newX < 0 || newX > imageSize.width - newLabels[item].width - 6) {
+          canMoveX = false;
+        }
+        if (newY < 0 || newY > imageSize.height - newLabels[item].height - 6) {
+          canMoveY = false;
+        }
+      });
+      selectedLabels.forEach((item) => {
+        if (canMoveX) {
+          newLabels[item].startX =
+            newLabels[item].startX + event.pageX - startPos.x;
+        }
+        if (canMoveY) {
+          newLabels[item].startY =
+            newLabels[item].startY + event.pageY - startPos.y;
+        }
+      });
+
+      setLabels(newLabels);
+      setStartPos({ x: event.pageX, y: event.pageY });
+    }
+    setMoved(true);
+  };
+
+  const handleMouseUpLabel = (event: React.MouseEvent) => {
+    if (isMoved === false) {
+      const index = Number(event.currentTarget.id.slice(6));
+      if (event.ctrlKey) {
+        const newSelectedLabel = getNewArray(selectedLabels);
+        newSelectedLabel.push(index);
+        setSelectedLabels(newSelectedLabel);
+      } else {
+        setSelectedLabels([index]);
+      }
+    }
+    setMoving(false);
+  };
+
   const handleKeyDown = (event: KeyboardEvent) => {
     if (
       (event.key === 'Delete' || event.key === 'Backspace') &&
-      selectedLabel !== null
+      selectedLabels.length > 0
     ) {
-      const newLabels: Label[] = JSON.parse(JSON.stringify(labels));
-      newLabels.splice(selectedLabel, 1);
+      const newLabels: Label[] = [];
+      labels.forEach((item, index: number) => {
+        if (!selectedLabels.includes(index)) {
+          newLabels.push(item);
+        }
+      });
       setLabels(newLabels);
-      setSelectedLabel(null);
+      setSelectedLabels([]);
     }
   };
 
@@ -125,11 +199,11 @@ function Content(props: IProps) {
       height: 0,
     });
 
-    setDrag(true);
+    setDrawing(true);
   };
 
   const handleMouseMoveCanvas = (event: React.MouseEvent) => {
-    if (isDrag) {
+    if (isDrawing) {
       const canvas = canvasRef.current as HTMLCanvasElement;
       const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
       const rect = canvas.getBoundingClientRect();
@@ -157,7 +231,7 @@ function Content(props: IProps) {
     label.width = Math.max(label.width - 3, 0);
     label.height = Math.max(label.height - 3, 0);
 
-    const newLabels: Label[] = JSON.parse(JSON.stringify(labels));
+    const newLabels: Label[] = getNewArray(labels);
     newLabels.push(label);
     setLabels(newLabels);
 
@@ -165,13 +239,18 @@ function Content(props: IProps) {
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    setDrag(false);
+    setDrawing(false);
   };
 
   return (
     <div className={`Content ${props.tool}`}>
       {imageUrl !== '' ? (
-        <img className="image" src={imageUrl} alt="target" />
+        <img
+          className="image"
+          src={imageUrl}
+          alt="target"
+          onClick={handleClickImage}
+        />
       ) : (
         <></>
       )}
