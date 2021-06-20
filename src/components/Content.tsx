@@ -30,9 +30,10 @@ function Content(props: IProps) {
   const [imageSize, setImageSize] = useState<Size>({ width: 0, height: 0 });
 
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
+  const [startPos, setStartPos] = useState<Coord>({ x: 0, y: 0 });
   const [isMoving, setMoving] = useState<boolean>(false);
   const [isMoved, setMoved] = useState<boolean>(false);
-  const [startPos, setStartPos] = useState<Coord>({ x: 0, y: 0 });
+  const [isAnchorMoving, setAnchorMoving] = useState<boolean>(false);
 
   const [isDrawing, setDrawing] = useState<boolean>(false);
   const [labels, setLabels] = useState<Label[]>([]);
@@ -75,13 +76,38 @@ function Content(props: IProps) {
   };
 
   const getLabelElements = () => {
-    const children = labels.map((item: Label, index: number) => {
+    const children = labels.map((item: Label, index) => {
       const style = {
         left: item.startX,
         top: item.startY,
         width: item.width,
         height: item.height,
       };
+
+      const classNameList = [
+        'anchor-rotate-line',
+        'anchor-rotate',
+        'anchor-square anchor-top',
+        'anchor-square anchor-top-right',
+        'anchor-square anchor-right',
+        'anchor-square anchor-bottom-right',
+        'anchor-square anchor-bottom',
+        'anchor-square anchor-bottom-left',
+        'anchor-square anchor-left',
+        'anchor-square anchor-top-left',
+      ];
+      const anchors: JSX.Element[] = [];
+      classNameList.forEach((item, index) => {
+        anchors.push(
+          <div
+            className={item}
+            onMouseDown={handleMouseDownAnchor}
+            onMouseMove={handleMouseMoveAnchor}
+            onMouseUp={handleMouseUpAnchor}
+            key={index}
+          ></div>
+        );
+      });
 
       return (
         <div
@@ -95,18 +121,7 @@ function Content(props: IProps) {
           onMouseUp={handleMouseUpLabel}
           key={index}
         >
-          <div className="anchors">
-            <div className="anchor-rotate-line"></div>
-            <div className="anchor-rotate"></div>
-            <div className="anchor-square anchor-top"></div>
-            <div className="anchor-square anchor-top-right"></div>
-            <div className="anchor-square anchor-right"></div>
-            <div className="anchor-square anchor-bottom-right"></div>
-            <div className="anchor-square anchor-bottom"></div>
-            <div className="anchor-square anchor-bottom-left"></div>
-            <div className="anchor-square anchor-left"></div>
-            <div className="anchor-square anchor-top-left"></div>
-          </div>
+          <div className="anchors">{anchors}</div>
         </div>
       );
     });
@@ -122,7 +137,7 @@ function Content(props: IProps) {
   };
 
   const handleMouseMoveLabel = (event: React.MouseEvent) => {
-    if (isMoving && selectedLabels.length > 0) {
+    if (isMoving && !isAnchorMoving && selectedLabels.length > 0) {
       const newLabels: Label[] = getNewArray(labels);
       let canMoveX = true;
       let canMoveY = true;
@@ -138,12 +153,10 @@ function Content(props: IProps) {
       });
       selectedLabels.forEach((item) => {
         if (canMoveX) {
-          newLabels[item].startX =
-            newLabels[item].startX + event.pageX - startPos.x;
+          newLabels[item].startX += event.pageX - startPos.x;
         }
         if (canMoveY) {
-          newLabels[item].startY =
-            newLabels[item].startY + event.pageY - startPos.y;
+          newLabels[item].startY += event.pageY - startPos.y;
         }
       });
 
@@ -167,13 +180,84 @@ function Content(props: IProps) {
     setMoving(false);
   };
 
+  const handleMouseDownAnchor = (event: React.MouseEvent) => {
+    setStartPos({ x: event.pageX, y: event.pageY });
+    setAnchorMoving(true);
+  };
+
+  const handleMouseMoveAnchor = (event: React.MouseEvent) => {
+    if (isAnchorMoving) {
+      const newLabels: Label[] = getNewArray(labels);
+      const classList = event.currentTarget.classList;
+      let callback: (value: number) => void = () => {};
+      if (classList.contains('anchor-top')) {
+        callback = (item) => {
+          const newHeight = newLabels[item].height - event.pageY - startPos.y;
+          const newY = newLabels[item].startY + event.pageY - startPos.y;
+          if (newY >= 0 && newY <= imageSize.height - newHeight - 6) {
+            newLabels[item].height -= event.pageY - startPos.y;
+            newLabels[item].startY += event.pageY - startPos.y;
+          }
+        };
+      } else if (classList.contains('anchor-top-right')) {
+        callback = (item) => {
+          newLabels[item].width += event.pageX - startPos.x;
+          newLabels[item].height -= event.pageY - startPos.y;
+          newLabels[item].startY += event.pageY - startPos.y;
+        };
+      } else if (classList.contains('anchor-right')) {
+        callback = (item) => {
+          newLabels[item].width += event.pageX - startPos.x;
+        };
+      } else if (classList.contains('anchor-bottom-right')) {
+        callback = (item) => {
+          newLabels[item].width += event.pageX - startPos.x;
+          newLabels[item].height += event.pageY - startPos.y;
+        };
+      } else if (classList.contains('anchor-bottom')) {
+        callback = (item) => {
+          newLabels[item].height += event.pageY - startPos.y;
+        };
+      } else if (classList.contains('anchor-bottom-left')) {
+        callback = (item) => {
+          newLabels[item].width -= event.pageX - startPos.x;
+          newLabels[item].startX += event.pageX - startPos.x;
+          newLabels[item].height += event.pageY - startPos.y;
+        };
+      } else if (classList.contains('anchor-left')) {
+        callback = (item) => {
+          newLabels[item].width -= event.pageX - startPos.x;
+          newLabels[item].startX += event.pageX - startPos.x;
+        };
+      } else if (classList.contains('anchor-top-left')) {
+        callback = (item) => {
+          newLabels[item].height -= event.pageY - startPos.y;
+          newLabels[item].startY += event.pageY - startPos.y;
+          newLabels[item].width -= event.pageX - startPos.x;
+          newLabels[item].startX += event.pageX - startPos.x;
+        };
+      }
+      selectedLabels.forEach(callback);
+      setLabels(newLabels);
+      setStartPos({ x: event.pageX, y: event.pageY });
+    }
+  };
+
+  const handleMouseUpAnchor = (event: React.MouseEvent) => {
+    const classList = event.currentTarget.classList;
+    if (classList.contains('anchor-top')) {
+      console.log('top!');
+    }
+    setAnchorMoving(false);
+  };
+
   const handleKeyDown = (event: KeyboardEvent) => {
     if (
       (event.key === 'Delete' || event.key === 'Backspace') &&
       selectedLabels.length > 0
     ) {
       const newLabels: Label[] = [];
-      labels.forEach((item, index: number) => {
+      labels.forEach((item, index) => {
         if (!selectedLabels.includes(index)) {
           newLabels.push(item);
         }
