@@ -41,7 +41,7 @@ function Content(props: IProps) {
     startX: 0,
     startY: 0,
     width: 0,
-    height: 0,
+    height: 0
   });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -67,10 +67,6 @@ function Content(props: IProps) {
     }
   }, [props.tool]);
 
-  function getNewArray<T>(array: T[]): T[] {
-    return JSON.parse(JSON.stringify(array));
-  }
-
   const handleClickImage = () => {
     setSelectedLabels([]);
   };
@@ -81,7 +77,7 @@ function Content(props: IProps) {
         left: item.startX,
         top: item.startY,
         width: item.width,
-        height: item.height,
+        height: item.height
       };
 
       const classNameList = [
@@ -94,7 +90,7 @@ function Content(props: IProps) {
         'anchor-square anchor-bottom',
         'anchor-square anchor-bottom-left',
         'anchor-square anchor-left',
-        'anchor-square anchor-top-left',
+        'anchor-square anchor-top-left'
       ];
       const anchors: JSX.Element[] = [];
       classNameList.forEach((item, index) => {
@@ -104,8 +100,7 @@ function Content(props: IProps) {
             onMouseDown={handleMouseDownAnchor}
             onMouseMove={handleMouseMoveAnchor}
             onMouseUp={handleMouseUpAnchor}
-            key={index}
-          ></div>
+            key={index}></div>
         );
       });
 
@@ -119,8 +114,7 @@ function Content(props: IProps) {
           onMouseDown={handleMouseDownLabel}
           onMouseMove={handleMouseMoveLabel}
           onMouseUp={handleMouseUpLabel}
-          key={index}
-        >
+          key={index}>
           <div className="anchors">{anchors}</div>
         </div>
       );
@@ -138,7 +132,7 @@ function Content(props: IProps) {
 
   const handleMouseMoveLabel = (event: React.MouseEvent) => {
     if (isMoving && !isAnchorMoving && selectedLabels.length > 0) {
-      const newLabels: Label[] = getNewArray(labels);
+      const newLabels: Label[] = [...labels];
       let canMoveX = true;
       let canMoveY = true;
       selectedLabels.forEach((item) => {
@@ -170,7 +164,7 @@ function Content(props: IProps) {
     if (isMoved === false) {
       const index = Number(event.currentTarget.id.slice(6));
       if (event.ctrlKey) {
-        const newSelectedLabel = getNewArray(selectedLabels);
+        const newSelectedLabel = [...selectedLabels];
         newSelectedLabel.push(index);
         setSelectedLabels(newSelectedLabel);
       } else {
@@ -187,7 +181,7 @@ function Content(props: IProps) {
 
   const handleMouseMoveAnchor = (event: React.MouseEvent) => {
     if (isAnchorMoving) {
-      const newLabels: Label[] = getNewArray(labels);
+      const newLabels: Label[] = [...labels];
       const classList = event.currentTarget.classList;
       let callback: (value: number) => void = () => {};
       if (classList.contains('anchor-top')) {
@@ -280,7 +274,7 @@ function Content(props: IProps) {
       startX: event.pageX - canvas.getBoundingClientRect().left,
       startY: event.pageY - canvas.getBoundingClientRect().top,
       width: 0,
-      height: 0,
+      height: 0
     });
 
     setDrawing(true);
@@ -315,7 +309,7 @@ function Content(props: IProps) {
     label.width = Math.max(label.width - 3, 0);
     label.height = Math.max(label.height - 3, 0);
 
-    const newLabels: Label[] = getNewArray(labels);
+    const newLabels: Label[] = [...labels];
     newLabels.push(label);
     setLabels(newLabels);
 
@@ -347,8 +341,7 @@ function Content(props: IProps) {
           height={imageSize.height}
           onMouseDown={handleMouseDownCanvas}
           onMouseMove={handleMouseMoveCanvas}
-          onMouseUp={handleMouseUpCanvas}
-        ></canvas>
+          onMouseUp={handleMouseUpCanvas}></canvas>
       ) : (
         <></>
       )}
