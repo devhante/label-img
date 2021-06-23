@@ -1,8 +1,5 @@
 .Header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
+    grid-column: 1 / span 2;
     border: 1px solid #EBEDF2;
     padding: 21px 0 16px 56px;
     background-color: #FCFCFC;
